@@ -21,10 +21,9 @@ router.post('/create', function (req, res) {
     User.create({
         // email: "user@email.com",
         // password: "password1234"
-
-        //dynamic code update of above
+        // dynamic code update of above
         email: req.body.user.email,
-        password: bcrypt.hashSync(req.body.user.password, 13)
+        password: bcrypt.hashSync(req.body.user.password, 13) /*11.2*/
     })
     .then(
         function createSuccess(user) {
@@ -34,7 +33,6 @@ router.post('/create', function (req, res) {
             //9.2.5 
             res.json({
                 user: user,
-
                 //10.3
                 message: 'User successfully created!',
                 sessionToken: token
@@ -45,9 +43,10 @@ router.post('/create', function (req, res) {
     //code from 9.2.6
     .catch(err => res.status(500).json({ error: err}))
 });
-
-//9.3.2
-router.post('/login', function(req, res) {
+/* ***************************************
+ *** USER SIGNIN ***
+ **************************************** */
+router.post('/login', function(req, res) {  /*9.3.2*/
 
     //9.3.3
     User.findOne({
@@ -59,16 +58,22 @@ router.post('/login', function(req, res) {
     .then(function loginSuccess(user) {
         //9.3.6
         if (user) {
-            
-            
-            res.status(200).json({
-                user: user
-            })
-        
-        } else {
+            bcrypt.compare(req.body.user.password, user.password, function (err, matches) { /* 11.3 */
+                if (matches) {
+                    let token = jwt.sign({id: user.id}, process.env.JWT_SECRET, {expiresIn: 60 * 60 * 24});
+                    res.status(200).json({
+                        user: user,
+                        message: "User successfully logged in!",
+                        sessionToken: token,
+                    })
 
+                } else {
+                    res.status(502).send({ error: "Login Failed"});
+                }
+            });
+                
+        } else {
             res.status(500).json({ error: 'User does not exist.'})
-        
         }
     })
     .catch(err => res.status(500).json({ error: err}))

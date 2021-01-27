@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config(); /*10.10*/
 let express = require('express'); 
 let app = express();
 let sequelize = require('./db');
@@ -13,12 +13,14 @@ let user = require('./controllers/usercontroller');
 
 sequelize.sync();
 
+app.use(require('./middleware/headers')); /*CORS*/
 app.use(express.json());  //9.2.3
 
-app.use('/journal', journal);
+// app.use('/journal', journal);
 app.use('/user', user);
 
-// app.use('/about', about)
+
+app.use('/journal', journal);
 
 app.listen(3000, function(){
     console.log('App is listening on port 3000');
